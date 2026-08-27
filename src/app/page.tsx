@@ -19,12 +19,10 @@ export default function Home() {
     setView("loading");
 
     try {
-      // Create FormData to send files
       const formData = new FormData();
       formData.append("questionFile", questionFile);
       formData.append("answerFile", answerFile);
 
-      // Call extraction API
       const res = await fetch("/api/extract", {
         method: "POST",
         body: formData,
@@ -36,9 +34,6 @@ export default function Home() {
 
       const data = await res.json();
       console.log("Extracted Data:", data);
-      
-      // TODO: Set mapped data state and switch to "mapping"
-      // setView("mapping");
 
     } catch (error) {
       console.error("Extraction error:", error);
@@ -49,11 +44,9 @@ export default function Home() {
 
   const handleLoadSample = () => {
     setView("loading");
-    // Simulate loading for demo
     setTimeout(() => {
       console.log("Sample loaded");
-      // TODO: setView("mapping");
-      setView("upload"); // just revert for now since we have no mapping screen
+      setView("upload");
     }, 2000);
   };
 
