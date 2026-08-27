@@ -23,7 +23,7 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (data?.questions?.length > 0) {
+    if (data?.questions && data.questions.length > 0) {
       setSelectedQuestionId(data.questions[0].id);
     }
   }, [data]);
@@ -48,7 +48,7 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
 
   // Jump to correct page if bounding box is on a different page
   useEffect(() => {
-    if (selectedAnswer && selectedAnswer.boundingBoxes?.length > 0) {
+    if (selectedAnswer?.boundingBoxes && selectedAnswer.boundingBoxes.length > 0) {
       const targetPage = selectedAnswer.boundingBoxes[0].pageIndex + 1;
       if (targetPage !== pageNumber && targetPage <= numPages) {
         setPageNumber(targetPage);
