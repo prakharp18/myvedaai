@@ -43,85 +43,106 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    const prompt = `You are an expert examiner grading a student's handwritten answer sheet against a printed question paper. You must be meticulous, accurate, and fair.
+    const prompt = `You are an expert examiner grading a student's handwritten answer sheet against a printed question paper.
 
-You are given two documents:
-- FILE 1: The Question Paper (printed/typed)
-- FILE 2: The Student's Answer Sheet (handwritten)
+TWO DOCUMENTS ARE PROVIDED:
+- FILE 1: Question Paper (printed/typed)
+- FILE 2: Student's Answer Sheet (handwritten, may be multi-page)
 
----
+PERFORM THESE STEPS IN ORDER:
 
-## STEP 1: EXTRACT ALL QUESTIONS
+═══════════════════════════════════════
+STEP 1: EXTRACT QUESTIONS
+═══════════════════════════════════════
+- Read the question paper and extract EVERY question and sub-question.
+- Use the EXACT label from the paper (e.g., "1", "1(a)", "2(b)").
+- Extract the full question text verbatim.
+- Extract maxMarks per question. If only given per group, divide logically. If unknown, use null.
+- Assign IDs sequentially: "q1", "q2", "q3", etc.
 
-Read the Question Paper carefully. Extract every question and sub-question as a separate entry.
-- Use the EXACT label from the paper (e.g., "1(a)", "1(b)", "2", "3(a)").
-- Extract the FULL question text verbatim.
-- Extract the maximum marks for each question. If marks are mentioned per main question (e.g., "Q1: 10 marks" with sub-parts a, b, c), divide them logically among sub-parts. If marks are not specified at all, set maxMarks to null.
-- Assign sequential IDs: "q1", "q2", "q3", etc.
+═══════════════════════════════════════
+STEP 2: SCAN ANSWER SHEET PAGE BY PAGE
+═══════════════════════════════════════
+CRITICAL: Go through the answer sheet ONE PAGE AT A TIME, from top to bottom.
+- For EACH answer you find, note:
+  a) Which PAGE it is on (page 1, page 2, etc.)
+  b) Which QUESTION it answers (look at the student's label: "Ans 1:", "Q2:", etc.)
+  c) WHERE on the page it starts and ends (top, middle, bottom)
+- Students often answer OUT OF ORDER. Match by the label the student wrote, NOT by position.
+- Transcribe the full handwritten text into "studentAnswerText".
+- If a question from the paper was NOT attempted at all, mark it as "isAnswered": false with empty text and 0 marks.
 
-## STEP 2: READ THE ANSWER SHEET & MAP ANSWERS
+═══════════════════════════════════════
+STEP 3: GRADE EACH ANSWER
+═══════════════════════════════════════
+- Compare each answer against expected correct content.
+- Award marks PROPORTIONALLY. Do NOT give full marks unless genuinely complete and correct.
+- Give 0 for wrong/blank answers. Give partial marks for partial answers.
+- "isCorrect" = true ONLY when full marks awarded.
+- Write specific "feedback": what was right, what was wrong, what was missing.
 
-Go through EACH PAGE of the answer sheet carefully, top to bottom.
-- Transcribe what the student wrote for each answer into "studentAnswerText". Be thorough — include all text, formulas, diagrams described in words, table contents, and bullet points.
-- Match each handwritten answer to the correct question by looking at the question number the student wrote. Students may answer out of order — do not assume sequential order.
-- If a question was NOT attempted, set "isAnswered": false, "studentAnswerText": "", "marksAwarded": 0.
+═══════════════════════════════════════
+STEP 4: BOUNDING BOXES — MOST IMPORTANT
+═══════════════════════════════════════
+For EACH answer, provide its EXACT physical location on the answer sheet.
 
-## STEP 3: GRADE EACH ANSWER
+COORDINATE SYSTEM:
+- pageIndex: 0-based (page 1 = 0, page 2 = 1, page 3 = 2)
+- All coordinates normalized to 0–1000 scale PER PAGE
+- (0,0) = top-left corner, (1000,1000) = bottom-right corner
+- ymin = where the answer STARTS (top edge)
+- ymax = where the answer ENDS (bottom edge)
+- xmin = left edge (typically 30-80 for handwritten text)
+- xmax = right edge (typically 900-970 for handwritten text)
 
-For each answer:
-- Compare the student's response against what a correct answer should be for that question.
-- Award marks proportionally. Do NOT give full marks unless the answer is genuinely complete and correct.
-- Give 0 marks for incorrect, irrelevant, or blank answers.
-- Give partial marks for partially correct answers.
-- Set "isCorrect" to true ONLY if full marks are awarded.
-- Write specific, constructive "feedback" explaining WHY those marks were given. Mention what was correct, what was missing, and what was wrong.
+EXAMPLES OF CORRECT BOUNDING BOXES:
+- An answer at the very TOP of page 1, taking up ~25% of the page:
+  { "pageIndex": 0, "ymin": 50, "xmin": 50, "ymax": 280, "xmax": 950 }
+- An answer in the MIDDLE of page 1, taking up ~20% of the page:
+  { "pageIndex": 0, "ymin": 400, "xmin": 50, "ymax": 600, "xmax": 950 }
+- An answer at the BOTTOM of page 1:
+  { "pageIndex": 0, "ymin": 700, "xmin": 50, "ymax": 950, "xmax": 950 }
+- An answer at the TOP of page 2:
+  { "pageIndex": 1, "ymin": 50, "xmin": 50, "ymax": 300, "xmax": 950 }
 
-## STEP 4: BOUNDING BOXES (CRITICAL)
+MANDATORY RULES:
+1. Each bounding box covers ONLY that specific answer. NO overlapping with adjacent answers.
+2. The box starts at the answer heading (e.g., "Ans 1:") and ends at the LAST LINE before the next answer starts.
+3. If an answer is on page 2, pageIndex MUST be 1. If on page 3, pageIndex MUST be 2. VERIFY THIS.
+4. If an answer spans across pages, provide separate bounding boxes for each page.
+5. DO NOT default all answers to pageIndex 0. Count which page each answer is actually on.
+6. Short answers (1-2 lines) should have a ymax-ymin range of about 50-100. Long answers (half page) should be about 400-500.
 
-For each answer, you MUST provide the physical location on the answer sheet page where the student wrote that answer.
-- "pageIndex": 0-based page number (page 1 = 0, page 2 = 1, etc.)
-- Coordinates are normalized to a 0-1000 scale where (0,0) is the top-left corner and (1000,1000) is the bottom-right corner of the page.
-- "ymin": top edge of the answer region (0 = very top of page)
-- "xmin": left edge of the answer region (0 = very left of page)
-- "ymax": bottom edge of the answer region (1000 = very bottom of page)
-- "xmax": right edge of the answer region (1000 = very right of page)
-- The bounding box should TIGHTLY wrap around ALL content the student wrote for that specific question (text, diagrams, tables, drawings).
-- If an answer spans multiple distinct regions on the same page, provide multiple bounding boxes.
-- If an answer continues across pages, provide a bounding box for each page.
+═══════════════════════════════════════
+STEP 5: SUMMARY
+═══════════════════════════════════════
+- Calculate totalMarks (sum of maxMarks) and scoredMarks (sum of marksAwarded).
+- Write brief overall feedback.
 
-## STEP 5: UNMATCHED CONTENT
-
-If the student wrote content that does not correspond to any question (e.g., doodles, rough work, or answers to questions not in the paper), add those to "unmatchedAnswers".
-
-## STEP 6: OVERALL SUMMARY
-
-Calculate the total marks available (sum of all maxMarks) and total marks scored (sum of all marksAwarded). Write a brief overall feedback.
-
----
-
-OUTPUT: Return ONLY a valid JSON object with this exact structure (no markdown, no code fences):
+═══════════════════════════════════════
+OUTPUT FORMAT (strict JSON, no markdown):
 {
   "questions": [
-    { "id": "q1", "numberLabel": "1(a)", "text": "Full question text here", "maxMarks": 5 }
+    { "id": "q1", "numberLabel": "1", "text": "Full question text", "maxMarks": 5 }
   ],
   "answers": {
     "q1": {
       "questionId": "q1",
-      "studentAnswerText": "Full transcription of what the student wrote",
+      "studentAnswerText": "What the student actually wrote",
       "isAnswered": true,
       "boundingBoxes": [
-        { "pageIndex": 0, "ymin": 50, "xmin": 30, "ymax": 350, "xmax": 950 }
+        { "pageIndex": 0, "ymin": 80, "xmin": 50, "ymax": 280, "xmax": 950 }
       ],
       "marksAwarded": 3,
       "isCorrect": false,
-      "feedback": "The student correctly defined X but missed the key point about Y. Partial marks awarded."
+      "feedback": "Correct definition but missed the example. -2 marks."
     }
   },
   "unmatchedAnswers": [],
   "overallSummary": {
     "totalMarks": 50,
     "scoredMarks": 35,
-    "feedback": "Overall assessment of the student's performance."
+    "feedback": "Overall performance summary."
   }
 }`;
 
@@ -144,9 +165,9 @@ OUTPUT: Return ONLY a valid JSON object with this exact structure (no markdown, 
       throw new Error("Gemini returned empty response");
     }
 
-    console.log("--- RAW GEMINI RESPONSE ---");
-    console.log(textResponse.substring(0, 2000));
-    console.log("--- END RESPONSE ---");
+    console.log("--- RAW GEMINI RESPONSE (first 3000 chars) ---");
+    console.log(textResponse.substring(0, 3000));
+    console.log("--- END ---");
 
     const parsedData = JSON.parse(textResponse);
 
