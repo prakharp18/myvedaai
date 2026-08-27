@@ -14,9 +14,7 @@ import {
 export default function Sidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col justify-between p-4 min-h-screen">
-      {/* Top section */}
       <div>
-        {/* Brand logo */}
         <div className="flex items-center gap-2 px-2 py-3 mb-4">
           <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
             V
@@ -26,7 +24,6 @@ export default function Sidebar() {
           </span>
         </div>
 
-        {/* Action Button */}
         <button
           type="button"
           className="w-full mb-6 bg-orange-50 border border-orange-200 hover:bg-orange-100 text-orange-700 font-medium text-sm py-2.5 px-3 rounded-lg flex items-center justify-center gap-2 transition"
@@ -35,7 +32,6 @@ export default function Sidebar() {
           <span>AI Teacher&apos;s Toolkit</span>
         </button>
 
-        {/* Navigation links */}
         <nav className="space-y-1 text-sm font-medium">
           <a
             href="#"
@@ -75,7 +71,6 @@ export default function Sidebar() {
         </nav>
       </div>
 
-      {/* Bottom section: Settings & School Info */}
       <div className="space-y-3 pt-4 border-t border-gray-100">
         <a
           href="#"

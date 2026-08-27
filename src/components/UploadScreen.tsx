@@ -23,7 +23,7 @@ export default function UploadScreen({
   const questionInputRef = useRef<HTMLInputElement>(null);
   const answerInputRef = useRef<HTMLInputElement>(null);
 
-  const canStart = Boolean(questionFile && answerFile);
+  const canStart = questionFile !== null && answerFile !== null;
 
   const handleQuestionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -37,9 +37,18 @@ export default function UploadScreen({
     }
   };
 
+  const handleRemoveQuestionFile = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onQuestionFileSelect(null);
+  };
+
+  const handleRemoveAnswerFile = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    onAnswerFileSelect(null);
+  };
+
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10 bg-gray-50/50">
-      {/* Title and subtitle */}
       <div className="text-center max-w-xl mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
           Upload{" "}
@@ -56,16 +65,13 @@ export default function UploadScreen({
         </p>
       </div>
 
-      {/* Center teacher avatar visual */}
       <div className="mb-8 relative flex items-center justify-center">
         <div className="w-20 h-20 rounded-full bg-orange-100 border-4 border-white shadow-md flex items-center justify-center text-3xl">
           👩‍🏫
         </div>
       </div>
 
-      {/* Upload Boxes Container */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl mb-8">
-        {/* Hidden inputs */}
         <input
           type="file"
           ref={questionInputRef}
@@ -81,7 +87,6 @@ export default function UploadScreen({
           className="hidden"
         />
 
-        {/* Question Paper Upload Box */}
         <div
           onClick={() => questionInputRef.current?.click()}
           className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition bg-white ${
@@ -99,10 +104,7 @@ export default function UploadScreen({
               <span className="text-xs text-green-600 font-medium">Ready</span>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onQuestionFileSelect(null);
-                }}
+                onClick={handleRemoveQuestionFile}
                 className="mt-1 text-xs text-red-500 hover:underline flex items-center gap-1"
               >
                 <X className="w-3 h-3" /> Remove
@@ -121,7 +123,6 @@ export default function UploadScreen({
           )}
         </div>
 
-        {/* Answer Sheet Upload Box */}
         <div
           onClick={() => answerInputRef.current?.click()}
           className={`border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition bg-white ${
@@ -139,10 +140,7 @@ export default function UploadScreen({
               <span className="text-xs text-green-600 font-medium">Ready</span>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAnswerFileSelect(null);
-                }}
+                onClick={handleRemoveAnswerFile}
                 className="mt-1 text-xs text-red-500 hover:underline flex items-center gap-1"
               >
                 <X className="w-3 h-3" /> Remove
@@ -162,7 +160,6 @@ export default function UploadScreen({
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex flex-col items-center gap-3">
         <button
           type="button"
@@ -182,7 +179,6 @@ export default function UploadScreen({
           Once both files are uploaded, you&apos;ll able to map answers with questions
         </p>
 
-        {/* Instant test demo button for quick evaluation */}
         <div className="mt-4 pt-4 border-t border-gray-200 text-center">
           <button
             type="button"

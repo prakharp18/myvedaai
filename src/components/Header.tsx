@@ -11,7 +11,6 @@ interface HeaderProps {
 export default function Header({ onBack, showBack = false }: HeaderProps) {
   return (
     <header className="h-16 bg-white border-b border-gray-200 px-6 flex items-center justify-between">
-      {/* Left side: Back & title */}
       <div className="flex items-center gap-3">
         {showBack ? (
           <button
@@ -31,7 +30,6 @@ export default function Header({ onBack, showBack = false }: HeaderProps) {
         )}
       </div>
 
-      {/* Right side: Actions & User profile */}
       <div className="flex items-center gap-4">
         <button
           type="button"
