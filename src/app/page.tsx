@@ -5,8 +5,10 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import UploadScreen from "@/components/UploadScreen";
 import LoadingScreen from "@/components/LoadingScreen";
-import MappingScreen from "@/components/MappingScreen";
+import dynamic from "next/dynamic";
 import { MappedAssessmentResult } from "@/types/assessment";
+
+const MappingScreen = dynamic(() => import("@/components/MappingScreen"), { ssr: false });
 
 type ViewState = "upload" | "loading" | "mapping";
 
