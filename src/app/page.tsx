@@ -5,6 +5,8 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import UploadScreen from "@/components/UploadScreen";
 import LoadingScreen from "@/components/LoadingScreen";
+import MappingScreen from "@/components/MappingScreen";
+import { MappedAssessmentResult } from "@/types/assessment";
 
 type ViewState = "upload" | "loading" | "mapping";
 
@@ -12,6 +14,7 @@ export default function Home() {
   const [view, setView] = useState<ViewState>("upload");
   const [questionFile, setQuestionFile] = useState<File | null>(null);
   const [answerFile, setAnswerFile] = useState<File | null>(null);
+  const [mappedData, setMappedData] = useState<MappedAssessmentResult | null>(null);
 
   const handleStartMapping = async () => {
     if (!questionFile || !answerFile) return;
@@ -33,8 +36,8 @@ export default function Home() {
       }
 
       const data = await res.json();
-      console.log("Extracted Data:", data);
-
+      setMappedData(data);
+      setView("mapping");
     } catch (error) {
       console.error("Extraction error:", error);
       setView("upload"); // Revert back on error
@@ -68,9 +71,7 @@ export default function Home() {
           )}
           {view === "loading" && <LoadingScreen />}
           {view === "mapping" && (
-            <div className="p-10 flex-1 flex items-center justify-center">
-              <p className="text-gray-500">Mapping Screen Placeholder</p>
-            </div>
+            <MappingScreen data={mappedData} answerFile={answerFile} />
           )}
         </main>
       </div>
