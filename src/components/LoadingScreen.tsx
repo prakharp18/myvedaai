@@ -1,23 +1,18 @@
 "use client";
 
 import React from "react";
-import { Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function LoadingScreen() {
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10 bg-white">
+    <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10 bg-gray-50">
       <div className="flex flex-col items-center justify-center">
-        <div className="relative mb-6 text-orange-500 animate-pulse flex items-center justify-center">
-          <Sparkles className="w-16 h-16" fill="currentColor" />
-          <div className="absolute top-0 right-0 w-3 h-3 bg-orange-400 rounded-full animate-bounce" />
-          <div className="absolute bottom-2 left-0 w-2 h-2 bg-orange-300 rounded-full animate-bounce delay-150" />
-        </div>
-        
+        <Loader2 className="w-10 h-10 text-orange-600 animate-spin mb-6" />
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Extracting...
+          Extracting data...
         </h2>
-        <p className="text-gray-500 text-sm">
-          This may take a while
+        <p className="text-gray-500 text-sm max-w-sm text-center">
+          Analyzing question paper and mapping handwritten answers. This may take a few moments.
         </p>
       </div>
     </div>

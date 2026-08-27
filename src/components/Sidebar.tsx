@@ -36,7 +36,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
 
         <button
           type="button"
-          className={`mb-6 bg-orange-50 border border-orange-200 hover:bg-orange-100 text-orange-700 font-medium text-sm py-2.5 rounded-lg flex items-center justify-center transition-all ${
+          className={`mb-6 bg-gray-100 border border-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm py-2.5 rounded-full flex items-center justify-center transition-all ${
             collapsed ? "w-10 h-10 px-0" : "w-full px-3 gap-2"
           }`}
         >

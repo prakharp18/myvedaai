@@ -49,26 +49,13 @@ export default function UploadScreen({
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10 bg-gray-50/50">
-      <div className="text-center max-w-xl mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-          Upload{" "}
-          <span className="text-orange-600 underline decoration-orange-300 decoration-wavy">
-            Question Paper
-          </span>{" "}
-          &{" "}
-          <span className="text-orange-600 underline decoration-orange-300 decoration-wavy">
-            Answer Sheets
-          </span>
+      <div className="text-center max-w-xl mb-12">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
+          Upload Question Paper & Answer Sheets
         </h1>
         <p className="text-gray-500 text-sm sm:text-base">
-          Upload both files to extract questions and map student answers side by side.
+          Upload both files to automatically extract questions, map student answers, and generate evaluation coordinates.
         </p>
-      </div>
-
-      <div className="mb-8 relative flex items-center justify-center">
-        <div className="w-20 h-20 rounded-full bg-orange-100 border-4 border-white shadow-md flex items-center justify-center text-3xl">
-          👩‍🏫
-        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl mb-8">
@@ -179,14 +166,13 @@ export default function UploadScreen({
           Once both files are uploaded, you&apos;ll able to map answers with questions
         </p>
 
-        <div className="mt-4 pt-4 border-t border-gray-200 text-center">
+        <div className="mt-4 pt-4 border-t border-gray-200 text-center w-full max-w-sm">
           <button
             type="button"
             onClick={onLoadSample}
-            className="text-xs text-orange-600 hover:text-orange-800 font-medium inline-flex items-center gap-1.5 bg-orange-50 hover:bg-orange-100 border border-orange-200 px-3.5 py-1.5 rounded-lg transition"
+            className="text-xs text-gray-600 hover:text-gray-900 font-medium bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition w-full"
           >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Load Sample Assessment (Instant Demo)</span>
+            Load Sample Assessment (Demo)
           </button>
         </div>
       </div>
