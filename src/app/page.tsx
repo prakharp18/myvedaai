@@ -1,27 +1,29 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import UploadScreen from "@/components/UploadScreen";
-import LoadingScreen from "@/components/LoadingScreen";
-import dynamic from "next/dynamic";
-import { MappedAssessmentResult } from "@/types/assessment";
-
-const MappingScreen = dynamic(() => import("@/components/MappingScreen"), { ssr: false });
-
-type ViewState = "upload" | "loading" | "mapping";
+import { useAssessment } from "@/context/AssessmentContext";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const [view, setView] = useState<ViewState>("upload");
-  const [questionFile, setQuestionFile] = useState<File | null>(null);
-  const [answerFile, setAnswerFile] = useState<File | null>(null);
-  const [mappedData, setMappedData] = useState<MappedAssessmentResult | null>(null);
+  const {
+    questionFile,
+    setQuestionFile,
+    answerFile,
+    setAnswerFile,
+    setMappedData,
+    setIsExtracting,
+  } = useAssessment();
+  const router = useRouter();
 
   const handleStartMapping = async () => {
     if (!questionFile || !answerFile) return;
     
-    setView("loading");
+    setIsExtracting(true);
+    // Navigate immediately to the loading state
+    router.push("/evaluate");
 
     try {
       const formData = new FormData();
@@ -39,42 +41,41 @@ export default function Home() {
 
       const data = await res.json();
       setMappedData(data);
-      setView("mapping");
     } catch (error) {
       console.error("Extraction error:", error);
-      setView("upload"); // Revert back on error
       alert("Something went wrong during extraction.");
+      // In a real app we might redirect back or show error state
+    } finally {
+      setIsExtracting(false);
     }
   };
 
   const handleLoadSample = () => {
-    setView("loading");
+    setIsExtracting(true);
+    router.push("/evaluate");
+    
     setTimeout(() => {
       console.log("Sample loaded");
-      setView("upload");
+      setIsExtracting(false);
+      // Would normally set dummy mapped data here if we had it
+      // router.push("/"); // go back since no dummy data to show
     }, 2000);
   };
 
   return (
     <div className="flex h-screen w-full bg-gray-50 overflow-hidden font-sans">
-      <Sidebar collapsed={view === "loading" || view === "mapping"} />
+      <Sidebar collapsed={false} />
       <div className="flex-1 flex flex-col min-w-0">
-        <Header showBack={view === "mapping"} onBack={() => setView("upload")} />
+        <Header showBack={false} />
         <main className="flex-1 overflow-y-auto flex flex-col">
-          {view === "upload" && (
-            <UploadScreen
-              questionFile={questionFile}
-              answerFile={answerFile}
-              onQuestionFileSelect={setQuestionFile}
-              onAnswerFileSelect={setAnswerFile}
-              onStartMapping={handleStartMapping}
-              onLoadSample={handleLoadSample}
-            />
-          )}
-          {view === "loading" && <LoadingScreen />}
-          {view === "mapping" && (
-            <MappingScreen data={mappedData} answerFile={answerFile} />
-          )}
+          <UploadScreen
+            questionFile={questionFile}
+            answerFile={answerFile}
+            onQuestionFileSelect={setQuestionFile}
+            onAnswerFileSelect={setAnswerFile}
+            onStartMapping={handleStartMapping}
+            onLoadSample={handleLoadSample}
+          />
         </main>
       </div>
     </div>
