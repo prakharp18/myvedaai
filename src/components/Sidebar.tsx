@@ -15,12 +15,10 @@ interface SidebarProps {
   collapsed?: boolean;
 }
 
-export default function Sidebar({ collapsed = false }: SidebarProps) {
-  return (
     <aside
       className={`${
         collapsed ? "w-16 items-center" : "w-64"
-      } bg-white border-r border-gray-200 flex flex-col justify-between p-4 min-h-screen transition-all duration-300`}
+      } bg-white border-r border-gray-200 hidden md:flex flex-col justify-between p-4 min-h-screen transition-all duration-300 shrink-0`}
     >
       <div className={collapsed ? "flex flex-col items-center w-full" : "w-full"}>
         <div className={`flex items-center gap-2 px-2 py-3 mb-4 ${collapsed ? "justify-center" : ""}`}>

@@ -5,7 +5,7 @@ import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
 import { MappedAssessmentResult } from "@/types/assessment";
-import { ChevronDown, ChevronUp, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, MinusCircle, FileText } from "lucide-react";
+import { ChevronDown, ChevronUp, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, MinusCircle, FileText, ListOrdered, Eye } from "lucide-react";
 
 // Configure PDF worker using standard JS worker for Next.js compatibility
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -16,6 +16,7 @@ interface MappingScreenProps {
 }
 
 type FilterType = "all" | "answered" | "unanswered";
+type MobileTab = "questions" | "viewer";
 
 export default function MappingScreen({ data, answerFile }: MappingScreenProps) {
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
@@ -25,6 +26,7 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [expandAll, setExpandAll] = useState(false);
+  const [mobileTab, setMobileTab] = useState<MobileTab>("questions");
 
   useEffect(() => {
     if (data?.questions && data.questions.length > 0) {
@@ -76,16 +78,20 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
     return true;
   });
 
+  const handleQuestionSelect = (qId: string) => {
+    setSelectedQuestionId(qId);
+  };
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-gray-50/50">
       
       {/* Score Summary Bar */}
-      <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-6">
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2 shrink-0">
+        <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">Total Score:</span>
-            <span className="text-lg font-bold text-gray-900">{scoredMarks}/{totalMarks}</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+            <span className="text-xs sm:text-sm text-gray-500">Total Score:</span>
+            <span className="text-base sm:text-lg font-bold text-gray-900">{scoredMarks}/{totalMarks}</span>
+            <span className={`text-[10px] sm:text-xs font-semibold px-2 py-0.5 rounded-full ${
               percentage >= 70 ? "bg-green-100 text-green-700" :
               percentage >= 40 ? "bg-orange-100 text-orange-700" :
               "bg-red-100 text-red-700"
@@ -93,39 +99,68 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
               {percentage}%
             </span>
           </div>
-          <div className="h-5 w-px bg-gray-200" />
-          <div className="flex items-center gap-4 text-xs">
-            <span className="flex items-center gap-1 text-green-600">
+          <div className="hidden sm:block h-5 w-px bg-gray-200" />
+          <div className="flex items-center gap-3 text-xs">
+            <span className="flex items-center gap-1 text-green-600 font-medium">
               <CheckCircle2 className="w-3.5 h-3.5" />
               {answeredCount} answered
             </span>
-            <span className="flex items-center gap-1 text-red-500">
+            <span className="flex items-center gap-1 text-red-500 font-medium">
               <AlertCircle className="w-3.5 h-3.5" />
               {unansweredCount} unanswered
             </span>
           </div>
         </div>
+
+        {/* Mobile Tab Switcher (Visible only on screens < lg) */}
+        <div className="flex lg:hidden items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+          <button
+            onClick={() => setMobileTab("questions")}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition ${
+              mobileTab === "questions"
+                ? "bg-white text-orange-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            <ListOrdered className="w-3.5 h-3.5" />
+            <span>Questions</span>
+          </button>
+          <button
+            onClick={() => setMobileTab("viewer")}
+            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition ${
+              mobileTab === "viewer"
+                ? "bg-white text-orange-600 shadow-sm"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Answer Sheet</span>
+          </button>
+        </div>
+
         {data.overallSummary?.feedback && (
-          <p className="text-xs text-gray-500 max-w-md truncate">{data.overallSummary.feedback}</p>
+          <p className="hidden xl:block text-xs text-gray-500 max-w-md truncate">{data.overallSummary.feedback}</p>
         )}
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
       
         {/* Left Panel: Questions */}
-        <div className="w-1/2 flex flex-col border-r border-gray-200">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-white shrink-0">
+        <div className={`w-full lg:w-1/2 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50/50 ${
+          mobileTab === "viewer" ? "hidden lg:flex" : "flex"
+        }`}>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-white shrink-0">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold text-gray-900">Questions</h2>
               <span className="text-xs text-gray-400">({filteredQuestions.length})</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               {/* Filter pills */}
               {(["all", "answered", "unanswered"] as FilterType[]).map(f => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition ${
+                  className={`text-[11px] sm:text-xs px-2.5 py-1 rounded-full font-medium transition ${
                     filter === f
                       ? "bg-orange-100 text-orange-700 border border-orange-200"
                       : "text-gray-500 hover:bg-gray-100 border border-transparent"
@@ -134,10 +169,10 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
                   {f === "all" ? "All" : f === "answered" ? "Answered" : "Unanswered"}
                 </button>
               ))}
-              <div className="w-px h-4 bg-gray-200 mx-1" />
+              <div className="w-px h-4 bg-gray-200 mx-1 hidden sm:block" />
               <button
                 onClick={() => setExpandAll(prev => !prev)}
-                className="text-xs text-gray-500 font-medium px-2.5 py-1 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition"
+                className="text-[11px] sm:text-xs text-gray-500 font-medium px-2.5 py-1 bg-white border border-gray-200 rounded-full hover:bg-gray-50 transition"
               >
                 {expandAll ? "Collapse all" : "Expand all"}
               </button>
@@ -260,11 +295,13 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
         </div>
 
         {/* Right Panel: Answer Sheet Viewer */}
-        <div className="w-1/2 bg-gray-800 flex flex-col relative overflow-hidden">
+        <div className={`w-full lg:w-1/2 bg-gray-800 flex flex-col relative overflow-hidden ${
+          mobileTab === "questions" ? "hidden lg:flex" : "flex"
+        }`}>
           
           {/* Viewer Toolbar */}
-          <div className="bg-gray-900/90 backdrop-blur px-4 py-2.5 flex items-center justify-between shrink-0 z-10">
-            <span className="text-white text-sm font-medium">Answer Sheet</span>
+          <div className="bg-gray-900/90 backdrop-blur px-3 sm:px-4 py-2 sm:py-2.5 flex items-center justify-between shrink-0 z-10">
+            <span className="text-white text-xs sm:text-sm font-medium">Answer Sheet</span>
             
             <div className="flex items-center gap-2">
               <div className="flex items-center bg-gray-700/60 rounded-lg">
