@@ -15,6 +15,8 @@ interface SidebarProps {
   collapsed?: boolean;
 }
 
+export default function Sidebar({ collapsed = false }: SidebarProps) {
+  return (
     <aside
       className={`${
         collapsed ? "w-16 items-center" : "w-64"
