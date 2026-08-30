@@ -3,6 +3,8 @@ import { GoogleGenAI } from "@google/genai";
 
 const apiKey = process.env.GEMINI_API_KEY;
 
+export const maxDuration = 60; // Increase timeout to 60 seconds for serverless platforms
+
 export async function POST(req: NextRequest) {
   try {
     if (!apiKey) {
