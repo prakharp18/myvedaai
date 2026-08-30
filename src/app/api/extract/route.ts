@@ -64,6 +64,7 @@ STEP 1: EXTRACT QUESTIONS
 STEP 2: SCAN ANSWER SHEET PAGE BY PAGE
 ═══════════════════════════════════════
 CRITICAL: Go through the answer sheet ONE PAGE AT A TIME, from top to bottom.
+- Ensure you process EVERY page of the answer sheet. Do not stop after page 1 or 2. Look for answers on page 3, 4, etc.
 - For EACH answer you find, note:
   a) Which PAGE it is on (page 1, page 2, etc.)
   b) Which QUESTION it answers (look at the student's label: "Ans 1:", "Q2:", etc.)
@@ -77,6 +78,7 @@ STEP 3: GRADE EACH ANSWER
 ═══════════════════════════════════════
 - Compare each answer against expected correct content.
 - Award marks PROPORTIONALLY. Do NOT give full marks unless genuinely complete and correct.
+- CRITICAL: If the answer is fundamentally incorrect or unrelated, award exactly 0 marks and set "isCorrect" to false. Do not give any sympathy points for incorrect answers.
 - Give 0 for wrong/blank answers. Give partial marks for partial answers.
 - "isCorrect" = true ONLY when full marks awarded.
 - Write specific "feedback": what was right, what was wrong, what was missing.
@@ -89,29 +91,40 @@ For EACH answer, provide its EXACT physical location on the answer sheet.
 COORDINATE SYSTEM:
 - pageIndex: 0-based (page 1 = 0, page 2 = 1, page 3 = 2)
 - All coordinates normalized to 0–1000 scale PER PAGE
-- (0,0) = top-left corner, (1000,1000) = bottom-right corner
-- ymin = where the answer STARTS (top edge)
-- ymax = where the answer ENDS (bottom edge)
-- xmin = left edge (typically 30-80 for handwritten text)
-- xmax = right edge (typically 900-970 for handwritten text)
+- (0,0) = top-left corner of the page, (1000,1000) = bottom-right corner
+- ymin = top edge of the answer region (where the answer label/heading starts)
+- ymax = bottom edge of the answer region (last line of writing before next answer)
+- xmin = left edge of writing (typically 30-80)
+- xmax = right edge of writing (typically 900-970)
 
-EXAMPLES OF CORRECT BOUNDING BOXES:
-- An answer at the very TOP of page 1, taking up ~25% of the page:
-  { "pageIndex": 0, "ymin": 50, "xmin": 50, "ymax": 280, "xmax": 950 }
-- An answer in the MIDDLE of page 1, taking up ~20% of the page:
-  { "pageIndex": 0, "ymin": 400, "xmin": 50, "ymax": 600, "xmax": 950 }
-- An answer at the BOTTOM of page 1:
-  { "pageIndex": 0, "ymin": 700, "xmin": 50, "ymax": 950, "xmax": 950 }
-- An answer at the TOP of page 2:
-  { "pageIndex": 1, "ymin": 50, "xmin": 50, "ymax": 300, "xmax": 950 }
+SIZING GUIDELINES (each handwritten line ≈ 30-40 units on the 1000-scale):
+- 1-2 lines answer → height ~60-100 (e.g., ymin:100, ymax:180)
+- 3-5 lines answer → height ~120-200 (e.g., ymin:200, ymax:380)
+- Half page answer → height ~400-500
+- Full page answer → height ~800-900
+- Include diagrams/figures the student drew as part of that answer's box
+- CRITICAL: Bounding boxes MUST strictly contain ONLY the student's answer for that specific question. DO NOT MAKE THE BOX COVER THE ENTIRE PAGE UNLESS THE ANSWER TRULY SPANS THE ENTIRE PAGE. Make it as tight as possible around the text of that specific answer.
 
-MANDATORY RULES:
-1. Each bounding box covers ONLY that specific answer. NO overlapping with adjacent answers.
-2. The box starts at the answer heading (e.g., "Ans 1:") and ends at the LAST LINE before the next answer starts.
-3. If an answer is on page 2, pageIndex MUST be 1. If on page 3, pageIndex MUST be 2. VERIFY THIS.
-4. If an answer spans across pages, provide separate bounding boxes for each page.
-5. DO NOT default all answers to pageIndex 0. Count which page each answer is actually on.
-6. Short answers (1-2 lines) should have a ymax-ymin range of about 50-100. Long answers (half page) should be about 400-500.
+SEQUENTIAL LAYOUT RULE (Ignore for collages/grids):
+For answers in a single vertical column, they MUST be ordered top-to-bottom:
+- Answer A's ymax must be < Answer B's ymin if B is directly below A
+
+PAGE COUNTING PROCEDURE:
+1. Determine the TOTAL number of files/pages provided.
+2. If it is a SINGLE image file containing multiple pages (like a 2x2 grid), treat the ENTIRE image as 'pageIndex': 0. Coordinates MUST be relative to the full image dimensions (0-1000). DO NOT split it logically.
+3. If it is a multi-page PDF, 'pageIndex' corresponds to the PDF page number (0-based).
+
+EXAMPLES:
+- Answer at very TOP of page 1 (3 lines): { "pageIndex": 0, "ymin": 40, "xmin": 50, "ymax": 160, "xmax": 950 }
+- Answer in MIDDLE of page 1 (5 lines): { "pageIndex": 0, "ymin": 380, "xmin": 50, "ymax": 580, "xmax": 950 }
+- Answer at BOTTOM of page 1 (4 lines): { "pageIndex": 0, "ymin": 750, "xmin": 50, "ymax": 920, "xmax": 950 }
+- Answer at TOP of page 2 (6 lines): { "pageIndex": 1, "ymin": 50, "xmin": 50, "ymax": 300, "xmax": 950 }
+
+VERIFICATION (do this mentally before outputting):
+- For each page, check that bounding boxes don't overlap vertically
+- Check that pageIndex values actually match which page the writing is on
+- Check that box height is proportional to the number of lines written
+- If an answer spans across pages, provide separate bounding boxes for each page
 
 ═══════════════════════════════════════
 STEP 5: SUMMARY

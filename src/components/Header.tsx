@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowLeft, HelpCircle, Bell, User } from "lucide-react";
+import { ArrowLeft, HelpCircle, Bell, FileText, Menu } from "lucide-react";
 
 interface HeaderProps {
   onBack?: () => void;
@@ -10,61 +10,89 @@ interface HeaderProps {
 
 export default function Header({ onBack, showBack = false }: HeaderProps) {
   return (
-    <header className="h-16 bg-white border-b border-gray-200 px-4 sm:px-6 flex items-center justify-between shrink-0">
+    <header className="h-16 bg-white rounded-3xl shadow-[0_4px_25px_rgba(0,0,0,0.06)] border border-gray-100/80 mx-3 mt-3 px-4 sm:px-6 flex items-center justify-between shrink-0">
       <div className="flex items-center gap-3">
-        {/* Mobile brand indicator */}
-        <div className="flex items-center gap-1.5 md:hidden">
-          <div className="w-7 h-7 rounded-lg bg-orange-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
-            V
-          </div>
-          <span className="text-lg font-bold text-gray-900 tracking-tight">
-            Veda<span className="text-orange-600">AI</span>
+        {/* Mobile: ← VedaAI */}
+        <div className="flex items-center gap-2.5 md:hidden">
+          <button
+            onClick={onBack}
+            type="button"
+            className="text-gray-900 hover:text-gray-700 transition p-0.5 -ml-1"
+          >
+            <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
+          </button>
+          <span className="text-xl font-extrabold text-gray-900 tracking-tight">
+            VedaAI
           </span>
         </div>
 
+        {/* Desktop breadcrumb: ← 📄 Exams */}
         {showBack ? (
           <button
             onClick={onBack}
             type="button"
-            className="flex items-center gap-2 text-xs sm:text-sm font-medium text-gray-700 hover:text-gray-900 transition bg-gray-50 sm:bg-transparent px-2.5 py-1.5 sm:p-0 rounded-lg sm:rounded-none border sm:border-0 border-gray-200"
+            className="hidden md:flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition"
           >
             <ArrowLeft className="w-4 h-4 text-gray-500" />
             <span>Back to Upload</span>
           </button>
         ) : (
-          <div className="hidden md:flex items-center gap-2 text-gray-700 text-sm font-medium">
-            <span className="text-gray-400">Exams</span>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-800 font-semibold">AI Assessment Extraction</span>
+          <div className="hidden md:flex items-center gap-2 text-gray-600 text-sm font-medium">
+            <ArrowLeft className="w-4 h-4 text-gray-400" />
+            <FileText className="w-4 h-4 text-gray-400" />
+            <span className="text-gray-600 font-medium">Exams</span>
           </div>
         )}
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 sm:gap-4">
+        {/* Help - desktop only */}
         <button
           type="button"
           aria-label="Help"
-          className="text-gray-500 hover:text-gray-700 p-1.5 rounded-full hover:bg-gray-100 transition"
+          className="hidden sm:flex text-gray-600 hover:text-gray-900 p-1.5 rounded-full hover:bg-gray-100 transition"
         >
-          <HelpCircle className="w-5 h-5" />
+          <HelpCircle className="w-5 h-5 stroke-[1.75]" />
         </button>
 
+        {/* Notifications */}
         <button
           type="button"
           aria-label="Notifications"
-          className="text-gray-500 hover:text-gray-700 p-1.5 rounded-full hover:bg-gray-100 transition"
+          className="relative text-gray-800 hover:text-gray-900 w-9 h-9 rounded-full bg-gray-100/80 sm:bg-transparent flex items-center justify-center transition"
         >
-          <Bell className="w-5 h-5" />
+          <Bell className="w-5 h-5 stroke-[1.8]" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-[#FF5520] rounded-full ring-2 ring-white" />
         </button>
 
-        <div className="flex items-center gap-2 pl-2 border-l border-gray-200">
-          <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center font-semibold text-xs border border-orange-200">
-            MR
+        {/* AI sparkle - desktop only */}
+        <button
+          type="button"
+          aria-label="AI Features"
+          className="hidden sm:flex text-gray-600 hover:text-gray-900 p-1.5 rounded-full hover:bg-gray-100 transition"
+        >
+          <span className="text-base font-bold leading-none">✦</span>
+        </button>
+
+        {/* User Profile */}
+        <div className="flex items-center gap-2.5 cursor-pointer select-none">
+          <div className="w-8 h-8 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-gradient-to-tr from-orange-400 to-amber-200 text-white flex items-center justify-center font-bold text-xs shadow-inner">
+            👤
           </div>
-          <span className="text-sm font-medium text-gray-800 hidden sm:inline-block">
+          <span className="text-sm font-medium text-gray-900 hidden sm:inline-block">
             Madhur Rastogi
           </span>
+          <span className="text-xs text-gray-400 hidden sm:inline">⌄</span>
         </div>
+
+        {/* Hamburger - mobile only */}
+        <button
+          type="button"
+          aria-label="Menu"
+          className="md:hidden text-gray-900 hover:text-gray-700 p-1"
+        >
+          <Menu className="w-5 h-5 stroke-[2.2]" />
+        </button>
       </div>
     </header>
   );

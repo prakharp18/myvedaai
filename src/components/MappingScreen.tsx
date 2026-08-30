@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -17,6 +17,11 @@ interface MappingScreenProps {
 
 type FilterType = "all" | "answered" | "unanswered";
 type MobileTab = "questions" | "viewer";
+
+/** Clamp a value between min and max */
+function clamp(val: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, val));
+}
 
 export default function MappingScreen({ data, answerFile }: MappingScreenProps) {
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
@@ -78,10 +83,6 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
     return true;
   });
 
-  const handleQuestionSelect = (qId: string) => {
-    setSelectedQuestionId(qId);
-  };
-
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-gray-50/50">
       
@@ -112,14 +113,14 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
           </div>
         </div>
 
-        {/* Mobile Tab Switcher (Visible only on screens < lg) */}
-        <div className="flex lg:hidden items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+        {/* Tab Switcher */}
+        <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200">
           <button
             onClick={() => setMobileTab("questions")}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition ${
               mobileTab === "questions"
-                ? "bg-white text-orange-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
             <ListOrdered className="w-3.5 h-3.5" />
@@ -127,32 +128,27 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
           </button>
           <button
             onClick={() => setMobileTab("viewer")}
-            className={`flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition ${
               mobileTab === "viewer"
-                ? "bg-white text-orange-600 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white text-gray-900 shadow-sm"
+                : "text-gray-500 hover:text-gray-700"
             }`}
           >
             <Eye className="w-3.5 h-3.5" />
             <span>Answer Sheet</span>
           </button>
         </div>
-
-        {data.overallSummary?.feedback && (
-          <p className="hidden xl:block text-xs text-gray-500 max-w-md truncate">{data.overallSummary.feedback}</p>
-        )}
       </div>
 
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
       
         {/* Left Panel: Questions */}
-        <div className={`w-full lg:w-1/2 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50/50 ${
+        <div className={`flex-1 min-h-0 min-w-0 w-full lg:w-1/2 flex flex-col border-b lg:border-b-0 lg:border-r border-gray-200 bg-gray-50/50 ${
           mobileTab === "viewer" ? "hidden lg:flex" : "flex"
         }`}>
           <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-white shrink-0">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-gray-900">Questions</h2>
-              <span className="text-xs text-gray-400">({filteredQuestions.length})</span>
+            <div className="flex flex-col">
+              <h2 className="text-sm font-semibold text-gray-900">Extracted Questions <span className="font-normal text-gray-400">(from question paper)</span></h2>
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               {/* Filter pills */}
@@ -180,7 +176,7 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
-            {filteredQuestions.map((q) => {
+            {filteredQuestions.map((q, idx) => {
               const isSelected = selectedQuestionId === q.id;
               const isExpanded = isSelected || expandAll;
               const answer = data.answers[q.id];
@@ -215,11 +211,11 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
                   }`}
                 >
                   <div className="p-3.5 flex items-start gap-3">
-                    {/* Question number */}
-                    <div className={`min-w-[2rem] h-8 px-2 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 ${
-                      isSelected ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-600"
+                    {/* Question number circle */}
+                    <div className={`w-8 h-8 min-w-[2rem] rounded-full flex items-center justify-center font-bold text-xs shrink-0 ${
+                      isSelected ? "bg-orange-500 text-white" : "bg-gray-800 text-white"
                     }`}>
-                      {q.numberLabel}
+                      {idx + 1}
                     </div>
                     
                     {/* Question text */}
@@ -295,7 +291,7 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
         </div>
 
         {/* Right Panel: Answer Sheet Viewer */}
-        <div className={`w-full lg:w-1/2 bg-gray-800 flex flex-col relative overflow-hidden ${
+        <div className={`flex-1 min-h-0 min-w-0 w-full lg:w-1/2 bg-gray-800 flex flex-col relative overflow-hidden ${
           mobileTab === "questions" ? "hidden lg:flex" : "flex"
         }`}>
           
@@ -331,8 +327,8 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
                   >
                     <ChevronLeft className="w-3.5 h-3.5" />
                   </button>
-                  <span className="text-xs font-medium text-gray-300 px-2">
-                    {pageNumber} / {numPages}
+                  <span className="text-xs font-medium text-gray-300 px-2 whitespace-nowrap">
+                    Page {pageNumber} of {numPages}
                   </span>
                   <button 
                     onClick={() => setPageNumber(p => Math.min(numPages, p + 1))}
@@ -368,16 +364,24 @@ export default function MappingScreen({ data, answerFile }: MappingScreenProps) 
                 <img src={imageUrl} alt="Answer Sheet" className="max-w-full h-auto" />
               ) : null}
 
-              {/* Bounding Box Overlay */}
+              {/* Bounding Box Overlay - with clamping for accuracy */}
               {selectedAnswer?.boundingBoxes?.map((box, idx) => {
                 // Only render if it matches the current page
                 if (isPdf && box.pageIndex + 1 !== pageNumber) return null;
 
-                // Normalized coordinates to percentages
-                const top = (box.ymin / 1000) * 100;
-                const left = (box.xmin / 1000) * 100;
-                const height = ((box.ymax - box.ymin) / 1000) * 100;
-                const width = ((box.xmax - box.xmin) / 1000) * 100;
+                // Clamp coordinates to valid range and convert to percentages
+                const ymin = clamp(box.ymin, 0, 1000);
+                const ymax = clamp(box.ymax, ymin, 1000);
+                const xmin = clamp(box.xmin, 0, 1000);
+                const xmax = clamp(box.xmax, xmin, 1000);
+
+                const top = (ymin / 1000) * 100;
+                const left = (xmin / 1000) * 100;
+                const height = ((ymax - ymin) / 1000) * 100;
+                const width = ((xmax - xmin) / 1000) * 100;
+
+                // Skip degenerate boxes
+                if (height < 0.5 || width < 0.5) return null;
 
                 // Get the question label for the tag
                 const qLabel = data.questions.find(q => q.id === selectedAnswer.questionId)?.numberLabel || "";
